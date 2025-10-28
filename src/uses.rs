@@ -146,6 +146,7 @@ pub enum BinaryOp {
     Div,
     And,
     Or,
+    Xor,
     ShiftLeft,
     ShiftRight,
 }

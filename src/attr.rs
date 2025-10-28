@@ -325,6 +325,7 @@ attribute_types! {
     attr types::ExportInline = "df372d18-045d-5d4e-8aad-26db0300c707" [UseItem];
     attr types::DefinesBuiltinTypes = "360cb09a-155e-5bc9-ac7b-d8cb6662687a" [File];
     attr types::ToolComment = "d6ade778-923c-573d-8c88-948fb053d49b" [File];
+    attr types::Align = "c9c12154-f381-5d48-88e1-ce31d9d1bd1f" [Struct, Union];
 }
 
 pub mod types;

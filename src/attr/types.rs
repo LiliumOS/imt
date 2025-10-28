@@ -51,3 +51,8 @@ pub enum DefinesBuiltinTypes {
 pub struct ToolComment {
     pub comment: String,
 }
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, Default, Encode, Decode)]
+pub struct Align {
+    pub alignment: u128,
+}
