@@ -9,3 +9,5 @@ pub mod tydef;
 pub mod value;
 
 pub mod uses;
+
+pub mod bundle;
