@@ -326,6 +326,7 @@ attribute_types! {
     attr types::DefinesBuiltinTypes = "360cb09a-155e-5bc9-ac7b-d8cb6662687a" [File];
     attr types::ToolComment = "d6ade778-923c-573d-8c88-948fb053d49b" [File];
     attr types::Align = "c9c12154-f381-5d48-88e1-ce31d9d1bd1f" [Struct, Union];
+    attr types::Synthetic = "5d4ceb6f-dc75-581c-ba8e-d014a77091fe";
 }
 
 pub mod types;

@@ -16,6 +16,7 @@ pub enum Type {
     Func(Signature),
     Void,
     Never,
+    Byte,
     Char(IntType),
     Array(Box<ArrayType>),
 }

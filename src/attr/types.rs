@@ -56,3 +56,6 @@ pub struct ToolComment {
 pub struct Align {
     pub alignment: u128,
 }
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, Default, Encode, Decode)]
+pub struct Synthetic;
