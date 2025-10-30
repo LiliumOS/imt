@@ -45,6 +45,7 @@ pub enum DefinesBuiltinTypes {
     #[default]
     None,
     Handle,
+    SysResult2,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, Default, Encode, Decode)]
