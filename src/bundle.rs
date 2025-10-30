@@ -145,8 +145,8 @@ impl Bundle {
                         Err(e) => return Some(Err(e)),
                     };
 
-                    let name = match entry.link_name() {
-                        Ok(name) => name?,
+                    let name = match entry.path() {
+                        Ok(name) => name,
                         Err(e) => {
                             return Some(Err(e));
                         }
