@@ -26,9 +26,16 @@ impl core::fmt::Display for Path {
     }
 }
 
+#[derive(Clone)]
 pub struct Bundle {
     prefix: Path,
     files: IndexMap<Path, File>,
+}
+
+impl core::fmt::Debug for Bundle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.files.fmt(f)
+    }
 }
 
 impl Bundle {
@@ -171,7 +178,7 @@ impl Bundle {
             use tar::Header;
 
             let mut path = path.iter().collect::<PathBuf>();
-            path.add_extension(".imt");
+            path.add_extension("imt");
 
             let mut header = Header::new_gnu();
 
