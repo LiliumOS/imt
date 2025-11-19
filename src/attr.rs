@@ -83,7 +83,7 @@ impl<Targ: AttributeTarget> Attribute<Targ> {
         }
     }
 
-    pub fn downcast<T: Target<Targ>>(&self) -> Option<&T> {
+    pub fn downcast<T: AttributeType>(&self) -> Option<&T> {
         if self.id != T::ID {
             return None;
         }
