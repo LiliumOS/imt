@@ -77,7 +77,7 @@ fn real_main(prg_name: &str, mut args: impl Iterator<Item = String>) -> std::io:
         .map(|prefix| Path(prefix.split("::").map(str::to_string).collect()))
         .unwrap_or_else(|| Path(vec![]));
 
-    let mut bundle = Bundle::create(prefix);
+    let mut bundle = Bundle::create();
 
     if let Some(unzip_prg) = &unzip_prg {
         let mut files = Vec::new();
@@ -124,10 +124,12 @@ fn real_main(prg_name: &str, mut args: impl Iterator<Item = String>) -> std::io:
                 }
                 #[cfg(feature = "tar")]
                 {
-                    bundle.parse_tar(output).map_err(|e| match e {
-                        DecodeError::Io { inner, .. } => inner,
-                        e => std::io::Error::new(ErrorKind::InvalidData, e),
-                    })?;
+                    bundle
+                        .parse_tar(prefix.clone(), output)
+                        .map_err(|e| match e {
+                            DecodeError::Io { inner, .. } => inner,
+                            e => std::io::Error::new(ErrorKind::InvalidData, e),
+                        })?;
                 }
             } else {
                 bundle.parse_file(name, output).map_err(|e| match e {
@@ -148,7 +150,7 @@ fn real_main(prg_name: &str, mut args: impl Iterator<Item = String>) -> std::io:
             #[cfg(feature = "tar")]
             (true, true) => {
                 bundle
-                    .parse_tar(std::io::stdin().lock())
+                    .parse_tar(prefix.clone(), std::io::stdin().lock())
                     .map_err(|e| match e {
                         DecodeError::Io { inner, .. } => inner,
                         e => std::io::Error::new(ErrorKind::InvalidData, e),
@@ -166,7 +168,7 @@ fn real_main(prg_name: &str, mut args: impl Iterator<Item = String>) -> std::io:
             (true, false) => {
                 for input in &input {
                     bundle
-                        .parse_tar(std::fs::File::open(input)?)
+                        .parse_tar(prefix.clone(), std::fs::File::open(input)?)
                         .map_err(|e| match e {
                             DecodeError::Io { inner, .. } => inner,
                             e => std::io::Error::new(ErrorKind::InvalidData, e),

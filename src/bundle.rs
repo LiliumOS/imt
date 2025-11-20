@@ -28,7 +28,6 @@ impl core::fmt::Display for Path {
 
 #[derive(Clone)]
 pub struct Bundle {
-    prefix: Path,
     files: IndexMap<Path, File>,
 }
 
@@ -39,31 +38,20 @@ impl core::fmt::Debug for Bundle {
 }
 
 impl Bundle {
-    pub fn create(prefix: Path) -> Self {
+    pub fn create() -> Self {
         Self {
-            prefix,
             files: IndexMap::new(),
         }
     }
 
-    pub fn prefix(&self) -> &Path {
-        &self.prefix
-    }
-
-    pub fn add_file(&mut self, local_path: Path, file: File) {
-        let mut path = self.prefix.clone();
-        path.0.extend(local_path.0);
+    pub fn add_file(&mut self, path: Path, file: File) {
         self.files.insert(path, file);
     }
 
-    pub fn parse_file<R: Read>(
-        &mut self,
-        local_path: Path,
-        mut file: R,
-    ) -> Result<(), DecodeError> {
+    pub fn parse_file<R: Read>(&mut self, path: Path, mut file: R) -> Result<(), DecodeError> {
         let file = bincode::decode_from_std_read(&mut file, format_config())?;
 
-        self.add_file(local_path, file);
+        self.add_file(path, file);
 
         Ok(())
     }
@@ -110,10 +98,12 @@ impl Bundle {
         ) -> std::io::Result<()>,
     >(
         &self,
+        prefix: &Path,
         mut supplier: F,
     ) -> std::io::Result<()> {
         for (path, file) in &self.files {
-            let without_prefix = &path.0[self.prefix.0.len()..];
+            let (check, without_prefix) = path.0.split_at(prefix.0.len());
+            assert_eq!(check, &prefix.0);
             supplier(without_prefix, &mut |mut w| {
                 bincode::encode_into_std_write(file, &mut w, format_config())
                     .map_err(|e| match e {
@@ -127,7 +117,7 @@ impl Bundle {
     }
 
     #[cfg(feature = "tar")]
-    pub fn parse_tar<R: Read>(&mut self, tar: R) -> Result<(), DecodeError> {
+    pub fn parse_tar<R: Read>(&mut self, prefix: Path, tar: R) -> Result<(), DecodeError> {
         use tar::Archive;
 
         let mut archive = Archive::new(tar);
@@ -156,23 +146,26 @@ impl Bundle {
 
                     let path = path.strip_suffix(".imt")?;
 
-                    let path = path
-                        .split(std::path::MAIN_SEPARATOR)
-                        .map(String::from)
-                        .collect::<Vec<_>>();
+                    let mut gpath = prefix.0.clone();
 
-                    Some(Ok((Path(path), entry)))
+                    gpath.extend(
+                        path.split(std::path::MAIN_SEPARATOR)
+                            .map(String::from)
+                            .collect::<Vec<_>>(),
+                    );
+
+                    Some(Ok((Path(gpath), entry)))
                 }),
         )
     }
 
     #[cfg(feature = "tar")]
-    pub fn write_tar<W: Write + Seek>(&mut self, tar: W) -> std::io::Result<()> {
+    pub fn write_tar<W: Write + Seek>(&mut self, prefix: &Path, tar: W) -> std::io::Result<()> {
         use tar::Builder;
 
         let mut archive = Builder::new(tar);
 
-        self.write_files(|path, writer_cb| {
+        self.write_files(&prefix, |path, writer_cb| {
             use std::path::PathBuf;
 
             use tar::Header;
