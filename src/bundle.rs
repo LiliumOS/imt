@@ -178,6 +178,10 @@ impl Bundle {
             writer_cb(&mut archive.append_writer(&mut header, path)?)
         })
     }
+
+    pub fn get(&self, path: &Path) -> Option<&File> {
+        self.files.get(path)
+    }
 }
 
 impl IntoIterator for Bundle {
