@@ -13,6 +13,18 @@ use crate::{config::format_config, file::File};
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Path(pub Vec<String>);
 
+impl Path {
+    pub fn starts_with(&self, other: &Path) -> bool {
+        if self.0.len() < other.0.len() {
+            return false;
+        }
+
+        let l = other.0.len();
+
+        &self.0[..l] == &other.0
+    }
+}
+
 impl core::fmt::Display for Path {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut sep = "";
@@ -182,6 +194,10 @@ impl Bundle {
     pub fn get(&self, path: &Path) -> Option<&File> {
         self.files.get(path)
     }
+
+    pub fn iter(&self) -> Iter<'_> {
+        Iter(self.files.iter())
+    }
 }
 
 impl IntoIterator for Bundle {
@@ -192,6 +208,43 @@ impl IntoIterator for Bundle {
         IntoIter(self.files.into_iter())
     }
 }
+
+impl<'a> IntoIterator for &'a Bundle {
+    type Item = (&'a Path, &'a File);
+    type IntoIter = Iter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+pub struct Iter<'a>(indexmap::map::Iter<'a, Path, File>);
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = (&'a Path, &'a File);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.0.size_hint()
+    }
+}
+
+impl<'a> DoubleEndedIterator for Iter<'a> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.0.next_back()
+    }
+}
+
+impl<'a> ExactSizeIterator for Iter<'a> {
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl<'a> FusedIterator for Iter<'a> {}
 
 pub struct IntoIter(indexmap::map::IntoIter<Path, File>);
 
