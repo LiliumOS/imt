@@ -237,13 +237,13 @@ def_attribute_targets! {
 pub trait Target<T: AttributeTarget>: AttributeType {}
 
 pub trait AttributeType:
-    Any + Clone + Encode + Decode<()> + Default + core::fmt::Debug + Sync
+    Any + Clone + Encode + Decode<()> + Default + core::fmt::Debug + Sync + Send
 {
     const ID: Uuid;
     const TARGET: Option<&[AttributeTargetKind]>;
 }
 
-trait DynAttr: Any + Sync {
+trait DynAttr: Any + Sync + Send {
     fn clone_box(&self) -> Box<dyn DynAttr>;
     fn from_bytes(&mut self, bytes: &[u8]) -> Result<(), DecodeError>;
     fn to_bytes(&self) -> Result<Vec<u8>, EncodeError>;
