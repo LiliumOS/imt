@@ -89,7 +89,7 @@ impl<Targ: AttributeTarget> Attribute<Targ> {
         }
 
         match &self.payload {
-            ErasedAttributeContent::Real(real, _) => <dyn Any>::downcast_ref(real),
+            ErasedAttributeContent::Real(real, _) => <dyn Any>::downcast_ref(&**real),
             _ => None,
         }
     }
