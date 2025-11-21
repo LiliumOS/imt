@@ -75,7 +75,7 @@ impl<Targ> core::fmt::Debug for Attribute<Targ> {
 }
 
 impl<Targ: AttributeTarget> Attribute<Targ> {
-    pub fn new<T: Target<Targ>>(x: T) -> Self {
+    pub fn new<T: Target<Targ> + Sync>(x: T) -> Self {
         Attribute {
             id: T::ID,
             flags: AttributeFlags::empty(),
@@ -236,12 +236,14 @@ def_attribute_targets! {
 
 pub trait Target<T: AttributeTarget>: AttributeType {}
 
-pub trait AttributeType: Any + Clone + Encode + Decode<()> + Default + core::fmt::Debug {
+pub trait AttributeType:
+    Any + Clone + Encode + Decode<()> + Default + core::fmt::Debug + Sync
+{
     const ID: Uuid;
     const TARGET: Option<&[AttributeTargetKind]>;
 }
 
-trait DynAttr: Any {
+trait DynAttr: Any + Sync {
     fn clone_box(&self) -> Box<dyn DynAttr>;
     fn from_bytes(&mut self, bytes: &[u8]) -> Result<(), DecodeError>;
     fn to_bytes(&self) -> Result<Vec<u8>, EncodeError>;
