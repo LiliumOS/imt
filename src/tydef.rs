@@ -13,6 +13,7 @@ pub struct TypeDef {
 }
 
 #[derive(Clone, Debug, Encode, Decode)]
+#[non_exhaustive]
 pub enum TypeDefBody {
     Alias(TypeAlias),
     Struct(Struct),

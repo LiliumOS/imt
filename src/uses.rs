@@ -8,6 +8,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug, Encode, Decode)]
+#[non_exhaustive]
 pub enum Type {
     Named(String, Option<Vec<Type>>),
     Param(u32, Option<Box<Type>>),
@@ -19,6 +20,7 @@ pub enum Type {
     Byte,
     Char(IntType),
     Array(Box<ArrayType>),
+    Uninit(Box<Type>),
 }
 
 #[derive(Clone, Debug, Encode, Decode)]
@@ -123,6 +125,7 @@ pub struct Param {
 }
 
 #[derive(Clone, Debug, Encode, Decode)]
+#[non_exhaustive]
 pub enum Expr {
     IntLiteral(IntType, u128),
     UuidLiteral(Uuid),
