@@ -7,7 +7,7 @@ use crate::{
     uuid::Uuid,
 };
 
-#[derive(Clone, Debug, Encode, Decode)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq, Encode, Decode)]
 #[non_exhaustive]
 pub enum Type {
     Named(String, Option<Vec<Type>>),
@@ -23,7 +23,7 @@ pub enum Type {
     Uninit(Box<Type>),
 }
 
-#[derive(Clone, Debug, Encode, Decode)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq, Encode, Decode)]
 pub struct ArrayType {
     pub base: Type,
     pub len: Expr,
@@ -111,20 +111,20 @@ pub enum PointerKind {
     Special(Uuid),
 }
 
-#[derive(Clone, Debug, Encode, Decode)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq, Encode, Decode)]
 pub struct Signature {
     pub params: Vec<Param>,
     pub retty: Box<Type>,
 }
 
-#[derive(Clone, Debug, Encode, Decode)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq, Encode, Decode)]
 pub struct Param {
     pub attrs: Vec<Attribute<Param>>,
     pub name: Option<String>,
     pub ty: Type,
 }
 
-#[derive(Clone, Debug, Encode, Decode)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq, Encode, Decode)]
 #[non_exhaustive]
 pub enum Expr {
     IntLiteral(IntType, u128),

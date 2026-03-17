@@ -1,5 +1,5 @@
 use core::any::Any;
-use std::{borrow::Cow, marker::PhantomData};
+use std::{borrow::Cow, hash::Hash, marker::PhantomData};
 
 use crate::uuid::Uuid;
 use bincode::{
@@ -53,6 +53,42 @@ pub struct Attribute<Targ> {
     flags: AttributeFlags,
     payload: ErasedAttributeContent<Targ>,
 }
+
+impl<Targ> core::hash::Hash for Attribute<Targ> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+        self.flags.hash(state);
+
+        match &self.payload {
+            ErasedAttributeContent::Real(dyn_attr, _) => {
+                state.write_u64(0);
+                dyn_attr.dyn_hash(state);
+            }
+            ErasedAttributeContent::Unknown(items) => {
+                state.write_u64(!0);
+                items.hash(state);
+            }
+        }
+    }
+}
+
+impl<Targ> PartialEq for Attribute<Targ> {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+            && self.flags == other.flags
+            && match (&self.payload, &other.payload) {
+                (ErasedAttributeContent::Real(left, _), ErasedAttributeContent::Real(right, _)) => {
+                    left.dyn_eq(&**right)
+                }
+                (ErasedAttributeContent::Unknown(left), ErasedAttributeContent::Unknown(right)) => {
+                    left == right
+                }
+                _ => false,
+            }
+    }
+}
+
+impl<Targ> Eq for Attribute<Targ> {}
 
 impl<Targ> core::fmt::Debug for Attribute<Targ> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -237,7 +273,7 @@ def_attribute_targets! {
 pub trait Target<T: AttributeTarget>: AttributeType {}
 
 pub trait AttributeType:
-    Any + Clone + Encode + Decode<()> + Default + core::fmt::Debug + Sync + Send
+    Any + Clone + Hash + Eq + Encode + Decode<()> + Default + core::fmt::Debug + Sync + Send
 {
     const ID: Uuid;
     const TARGET: Option<&[AttributeTargetKind]>;
@@ -245,6 +281,8 @@ pub trait AttributeType:
 
 trait DynAttr: Any + Sync + Send {
     fn clone_box(&self) -> Box<dyn DynAttr>;
+    fn dyn_hash(&self, hasher: &mut dyn core::hash::Hasher);
+    fn dyn_eq(&self, other: &dyn DynAttr) -> bool;
     fn from_bytes(&mut self, bytes: &[u8]) -> Result<(), DecodeError>;
     fn to_bytes(&self) -> Result<Vec<u8>, EncodeError>;
     fn fmt_debug<'a>(&self, f: &mut core::fmt::Formatter<'a>) -> core::fmt::Result;
@@ -272,6 +310,18 @@ impl<A: AttributeType> DynAttr for A {
 
     fn fmt_debug<'a>(&self, f: &mut core::fmt::Formatter<'a>) -> core::fmt::Result {
         self.fmt(f)
+    }
+
+    fn dyn_hash(&self, mut hasher: &mut dyn core::hash::Hasher) {
+        core::hash::Hash::hash(self, &mut hasher);
+    }
+
+    fn dyn_eq(&self, other: &dyn DynAttr) -> bool {
+        if let Some(val) = (other as &dyn Any).downcast_ref::<Self>() {
+            val == self
+        } else {
+            false
+        }
     }
 }
 
@@ -329,6 +379,7 @@ attribute_types! {
     attr types::ToolComment = "d6ade778-923c-573d-8c88-948fb053d49b" [File];
     attr types::Align = "c9c12154-f381-5d48-88e1-ce31d9d1bd1f" [Struct, Union];
     attr types::Synthetic = "5d4ceb6f-dc75-581c-ba8e-d014a77091fe";
+    attr types::OptionBaseType = "9ad6f840-9415-511d-80de-5cb77002f1d7" [Struct];
 }
 
 pub mod types;

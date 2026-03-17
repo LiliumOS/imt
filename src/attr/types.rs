@@ -1,6 +1,6 @@
 use bincode::{Decode, Encode};
 
-use crate::{header::Version, uuid::Uuid};
+use crate::{header::Version, uses::Type, uuid::Uuid};
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Default, Encode, Decode)]
 pub enum SafetyHint {
@@ -60,3 +60,14 @@ pub struct Align {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, Default, Encode, Decode)]
 pub struct Synthetic;
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, Encode, Decode)]
+pub struct OptionBaseType {
+    pub ty: Type,
+}
+
+impl Default for OptionBaseType {
+    fn default() -> Self {
+        OptionBaseType { ty: Type::Void }
+    }
+}
